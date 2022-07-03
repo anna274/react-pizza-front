@@ -1,26 +1,29 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "outDir": "./build",
+    "lib": ["dom", "es6", "ES2021.String"],
     "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
+    "target": "es6",
+    "module": "es6",
     "moduleResolution": "node",
+    "isolatedModules": false,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react",
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "noEmit": false,
+    "baseUrl": "src",
+    "paths": {
+      "@consts*": ["./src/consts*"],
+      "@pages*": ["./src/pages"],
+      "@components*": ["./src/components"],
+      "@graphQL": ["src/gql"],
+      "@types": [".src/types"],
+      "@assets": [".src/assets"],
+      "@helpers": [".src/helpers"]
+    }
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }
