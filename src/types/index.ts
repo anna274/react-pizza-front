@@ -11,6 +11,13 @@ export interface IPizza {
   name: string;
   image: string;
   modifications: IPizzaModification[];
+  pizzaAvailability: IPizzaAvailability;
+}
+
+export interface IPizzaAvailability {
+  pizzaId: string;
+  maxAmount: number;
+  orderedAmount: number;
 }
 
 export interface ICartPizza {

@@ -78,6 +78,7 @@ export const getOrderPayload = (cart: ICart) => {
   const payloadOrderedPizzas = Object.values(orderedPizzas).map(
     ({ amount, pizza, modification }) => {
       return {
+        pizzaId: pizza.id,
         dough: modification.dough,
         size: modification.size,
         price: modification.price,

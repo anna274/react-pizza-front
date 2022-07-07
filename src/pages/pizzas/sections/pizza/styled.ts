@@ -21,6 +21,7 @@ export const PizzaName = styled.h3`
   font-weight: 800;
   letter-spacing: 0.01em;
   text-align: center;
+  margin: 10px 0;
 `;
 
 export const ModificationsContainer = styled.div`
@@ -70,4 +71,11 @@ export const PizzaPrice = styled.h5`
   font-size: 22px;
   margin: 0;
   padding-left: 5px;
+`;
+
+export const PizzaAvailability = styled.div`
+  text-align: center;
+  font-weight: 500;
+  font-size: 16px;
+  margin-bottom: 10px;
 `;

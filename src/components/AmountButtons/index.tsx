@@ -5,14 +5,17 @@ interface IProps {
   amount: number;
   onAdd: () => void;
   onRemove: () => void;
+  disableAddButton?: boolean;
 }
 
-export const AmountButtons: React.FC<IProps> = ({ amount, onAdd, onRemove }) => {
+export const AmountButtons: React.FC<IProps> = ({ amount, onAdd, onRemove, disableAddButton }) => {
   return (
     <ButtonsContainer>
       <AmountButton onClick={onRemove}>-</AmountButton>
       <AmountNumber>{amount}</AmountNumber>
-      <AmountButton onClick={onAdd}>+</AmountButton>
+      <AmountButton disabled={disableAddButton} onClick={onAdd}>
+        +
+      </AmountButton>
     </ButtonsContainer>
   );
 };

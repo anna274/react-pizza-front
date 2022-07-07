@@ -16,7 +16,13 @@ export const StyledButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
 
-  &:hover {
+  &:disabled {
+    border: 1px solid #f3f3f3;
+    color: #f3f3f3;
+    cursor: default;
+  }
+
+  &:hover:not(:disabled) {
     color: #ffffff;
     background: ${({ variant }: IButtonProps) => (variant === 'contained' ? '#d15019' : '#eb5a1e')};
 

@@ -15,6 +15,11 @@ export const AmountButton = styled.button`
   color: #fe5f1e;
   font-size: 22px;
   cursor: pointer;
+
+  &:disabled {
+    color: #f3f3f3;
+    border: 2px solid #f3f3f3;
+  }
 `;
 
 export const AmountNumber = styled.p`

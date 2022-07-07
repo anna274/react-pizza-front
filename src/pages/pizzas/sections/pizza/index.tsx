@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IPizza, IPizzaModification, ICart } from 'types';
+import { IPizza, IPizzaModification, ICart, IPizzaAvailability } from 'types';
 import { Button, AmountButtons } from 'components';
 import { getOrderedPizzasWithPizza, getOrderedPizzasWithoutPizza, getCartItemId } from 'helpers';
 import { cartVar } from 'index';
@@ -12,10 +12,12 @@ import {
   Modification,
   PizzaFooter,
   PizzaPrice,
+  PizzaAvailability,
 } from './styled';
 
 interface IProps {
   pizza: IPizza;
+  pizzaAvailability?: IPizzaAvailability;
 }
 
 const SIZE_OPTIONS: number[] = [26, 30, 40];
@@ -40,7 +42,11 @@ const getNumberOfSelectedPizzas = (
   return cart.orderedPizzas[getCartItemId(selectedModification, pizza)]?.amount;
 };
 
-export const Pizza: React.FC<IProps> = ({ pizza: { name, image, modifications }, pizza }) => {
+export const Pizza: React.FC<IProps> = ({
+  pizza: { name, image, modifications },
+  pizza,
+  pizzaAvailability: { orderedAmount = 0, maxAmount = 0, pizzaId } = {},
+}) => {
   const [selectedSize, setSize] = useState(SIZE_OPTIONS[0]);
   const [selectedDough, setDough] = useState(DOUGH_OPTIONS[0]);
   const [selectedModification, setModification] = useState(
@@ -55,6 +61,11 @@ export const Pizza: React.FC<IProps> = ({ pizza: { name, image, modifications },
     setDough(newDough);
     setModification(getSelectedModification(modifications, selectedSize, newDough));
   };
+  const { orderedPizzas } = cartVar();
+  const pizzasInTheCart = Object.values(orderedPizzas)
+    .filter(({ pizza: { id } }) => id === pizzaId)
+    .reduce((res, { amount }) => res + amount, 0);
+
   const onAddHandler = () => {
     const { totalAmount, totalPrice, orderedPizzas } = cartVar();
     const { price: selectedPizzaPrice = 0 } = selectedModification;
@@ -76,10 +87,24 @@ export const Pizza: React.FC<IProps> = ({ pizza: { name, image, modifications },
     cartVar(updatedCart);
   };
   const numberOfSelectedPizzas = getNumberOfSelectedPizzas(cartVar(), selectedModification, pizza);
+  const pizzasLeft = maxAmount - orderedAmount;
+
+  const getPizzasLabel = () => {
+    if (pizzasLeft <= 0) {
+      return 'К сожалению, такие пиццы закончились, завтра будет ещё ;)';
+    }
+    const pizzasLeftWithCart = pizzasLeft - pizzasInTheCart;
+    if (pizzasLeftWithCart === 0) {
+      return 'Вы заказали последние пиццы, завтра будет ещё ;)';
+    }
+    return `Успей купить сегодня!! Осталось всего лишь ${pizzasLeftWithCart} шт.`;
+  };
+
   return (
     <PizzaContainer>
       <PizzaImage src={image} />
       <PizzaName>{name}</PizzaName>
+      <PizzaAvailability>{getPizzasLabel()}</PizzaAvailability>
       <ModificationsContainer>
         <ModificationsGroup>
           {SIZE_OPTIONS.map((option) => (
@@ -109,9 +134,14 @@ export const Pizza: React.FC<IProps> = ({ pizza: { name, image, modifications },
             amount={numberOfSelectedPizzas}
             onAdd={onAddHandler}
             onRemove={onRemoveHandler}
+            disableAddButton={!(pizzasLeft - pizzasInTheCart > 0)}
           />
         ) : (
-          <Button children="+ Добавить" onClick={onAddHandler} />
+          <Button
+            children="+ Добавить"
+            onClick={onAddHandler}
+            disabled={!(pizzasLeft - pizzasInTheCart > 0)}
+          />
         )}
       </PizzaFooter>
     </PizzaContainer>
