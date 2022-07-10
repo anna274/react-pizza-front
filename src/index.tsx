@@ -22,7 +22,6 @@ export const cartVar = makeVar<ICart>({
 //@ts-ignore
 const customFetch = async (uri, options) => {
   const response = await fetch(uri, options);
-  console.log('response', response);
   return response;
 };
 

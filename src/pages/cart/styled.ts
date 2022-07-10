@@ -11,3 +11,8 @@ export const PageFooter = styled.div`
   align-items: center;
   justify-content: space-between;
 `;
+
+export const OrderError = styled.div`
+  padding: 20px 40px;
+  background-color: #f58258;
+`;

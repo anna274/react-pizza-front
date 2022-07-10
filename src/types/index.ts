@@ -6,6 +6,12 @@ export interface IPizzaModification {
   pizzasIds?: string[];
 }
 
+export interface IPizzaType {
+  id: string;
+  name: string;
+  pizzaIds?: string[];
+}
+
 export interface IPizza {
   id: string;
   name: string;

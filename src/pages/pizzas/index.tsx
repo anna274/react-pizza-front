@@ -1,18 +1,27 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery, useSubscription } from '@apollo/client';
 import { Link } from 'react-router-dom';
-import { GET_PIZZAS, AVAILABILITY_UPDATE_SUBSCRIPTION, GET_PIZZA_AVAILABILITY } from 'gql/pizzas';
-import { IPizza, IPizzaAvailability } from 'types';
+import {
+  GET_PIZZAS,
+  AVAILABILITY_UPDATE_SUBSCRIPTION,
+  GET_PIZZA_AVAILABILITY,
+  GET_PIZZA_TYPES,
+} from 'gql/pizzas';
+import { IPizza, IPizzaAvailability, IPizzaType } from 'types';
 import { Header, Button, PageContainer, PageHeader } from 'components';
 import { cartVar } from 'index';
 import { Pizza } from './sections/pizza';
-import { PizzasContainer } from './styled';
+import { PizzasContainer, PizzaFilters, PizzaFilter } from './styled';
+
+const baseFilter: IPizzaType = {
+  id: 'base',
+  name: 'Все',
+};
 
 export const Pizzas: React.FC = () => {
-  console.log('GET_PIZZAS', GET_PIZZAS);
-  console.log('GET_PIZZA_AVAILABILITY', GET_PIZZA_AVAILABILITY);
-  console.log('AVAILABILITY_UPDATE_SUBSCRIPTION', AVAILABILITY_UPDATE_SUBSCRIPTION);
-  const { loading, error, data: { pizzas } = {} } = useQuery(GET_PIZZAS);
+  const [filter, setFilter] = useState<IPizzaType>(baseFilter);
+  const { loading, error, data: { pizzas } = {}, refetch } = useQuery(GET_PIZZAS);
+  const { data: { pizza_types = [] } = {} } = useQuery(GET_PIZZA_TYPES);
   const { data: { pizza_availability } = {} } = useQuery(GET_PIZZA_AVAILABILITY);
   const { data: subscriptionData, error: subscribtionError } = useSubscription(
     AVAILABILITY_UPDATE_SUBSCRIPTION,
@@ -21,17 +30,15 @@ export const Pizzas: React.FC = () => {
   const availabilityToShow: IPizzaAvailability[] = useMemo(() => {
     return updatedAvailability ? updatedAvailability : pizza_availability;
   }, [updatedAvailability, pizza_availability]);
-  console.log('availabilityToShow', availabilityToShow);
+
   if (loading) {
     return <div>Loading....</div>;
   }
-  if (error) {
-    return <div>{error.message}</div>;
+  if (error || subscribtionError) {
+    window.location.reload();
+    return <div>Loading....</div>;
   }
 
-  if (subscribtionError) {
-    return <div>{subscribtionError.message}</div>;
-  }
   const { totalAmount, totalPrice } = cartVar();
 
   return (
@@ -43,6 +50,23 @@ export const Pizzas: React.FC = () => {
           onClick={() => {}}
         />
       </Header>
+      {pizza_types.length > 0 && (
+        <PizzaFilters>
+          {[baseFilter, ...pizza_types].map(({ id, name }: IPizzaType) => (
+            <PizzaFilter
+              key={id}
+              selected={filter?.id === id}
+              onClick={() => {
+                setFilter({ id, name });
+                console.log('id === baseFilter.id', id === baseFilter.id);
+                refetch({ pizzaFilter: id === baseFilter.id ? {} : { id } });
+              }}
+            >
+              {name}
+            </PizzaFilter>
+          ))}
+        </PizzaFilters>
+      )}
       <PageHeader text="Все пиццы" />
       <PizzasContainer>
         {pizzas?.map((pizza: IPizza) => (
@@ -52,6 +76,7 @@ export const Pizzas: React.FC = () => {
             pizzaAvailability={availabilityToShow?.find(({ pizzaId }) => pizzaId === pizza.id)}
           />
         ))}
+        {pizzas.length === 0 && <div>Пицц такого вида нет у нас в меню :(</div>}
       </PizzasContainer>
     </PageContainer>
   );

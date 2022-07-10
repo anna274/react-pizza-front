@@ -1,9 +1,9 @@
-import React from 'react';
-import { useQuery, useMutation } from '@apollo/client';
+import React, { useMemo, useState } from 'react';
+import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { Link } from 'react-router-dom';
-import { GET_PIZZAS } from 'gql/pizzas';
+import { GET_PIZZAS, AVAILABILITY_UPDATE_SUBSCRIPTION, GET_PIZZA_AVAILABILITY } from 'gql/pizzas';
 import { CREATE_ORDER } from 'gql/orders';
-import { ICartPizza, IPizza, IPizzaModification } from 'types';
+import { ICartPizza, IPizza, IPizzaModification, IPizzaAvailability, ICart } from 'types';
 import { Header, PageContainer, PageHeader, Button } from 'components';
 import {
   getOrderedPizzasWithPizza,
@@ -16,21 +16,64 @@ import { cartVar } from 'index';
 import { OrderedPizza } from './sections/OrderedPizza';
 import { CartSummary } from './sections/CartSummary';
 import { EmptyCart } from './sections/EmptyCart';
-import { OrderItemsContainer, PageFooter } from './styled';
+import { OrderItemsContainer, PageFooter, OrderError } from './styled';
+
+interface IHelperReturnedValue {
+  [key: string]: number;
+}
+
+const areAllPizzasCanBeOrdered = (cart: ICart, availabilityToShow: IPizzaAvailability[]) => {
+  const orderedPizzas = Object.values(cart.orderedPizzas).reduce((res, orderedPizza) => {
+    const {
+      pizza: { id },
+      amount,
+    } = orderedPizza;
+    //@ts-ignore
+    if (res[id]) {
+      //@ts-ignore
+      res[id] += amount;
+    } else {
+      //@ts-ignore
+      res[id] = amount;
+    }
+    return res;
+  }, {} as IHelperReturnedValue);
+  return !Object.entries(orderedPizzas).find(([id, amount]) => {
+    const { maxAmount, orderedAmount } =
+      availabilityToShow.find(({ pizzaId }) => pizzaId === id) || ({} as IPizzaAvailability);
+    if (amount + orderedAmount > maxAmount) {
+      return true;
+    }
+    return false;
+  });
+};
 
 export const Cart: React.FC = () => {
+  const [orderError, setOrderError] = useState('');
   const {
     data: {
       cart: { totalAmount, totalPrice, orderedPizzas },
     },
   } = useQuery(GET_PIZZAS);
+  const { data: { pizza_availability } = {} } = useQuery(GET_PIZZA_AVAILABILITY);
+  const { data: subscriptionData } = useSubscription(AVAILABILITY_UPDATE_SUBSCRIPTION);
+  const updatedAvailability = subscriptionData?.availabilityUpdated?.updated_pizza_availability;
+  const availabilityToShow: IPizzaAvailability[] = useMemo(() => {
+    return updatedAvailability ? updatedAvailability : pizza_availability;
+  }, [updatedAvailability, pizza_availability]);
   const [createOrder, { loading: creatingOrder }] = useMutation(CREATE_ORDER, {
     onCompleted: () => {
       window.location.href = '/';
     },
   });
   const onPayHandler = () => {
-    const order = getOrderPayload(cartVar());
+    const cart = cartVar();
+    if (!areAllPizzasCanBeOrdered(cart, availabilityToShow)) {
+      setOrderError('Вы не можете заказть все пиццы');
+      return;
+    }
+    setOrderError('');
+    const order = getOrderPayload(cart);
     createOrder({
       variables: {
         order,
@@ -102,6 +145,7 @@ export const Cart: React.FC = () => {
   return (
     <PageContainer>
       <Header />
+      {orderError && <OrderError>{orderError}</OrderError>}
       <PageHeader text="Корзина">
         <Button variant="not-bordered" onClick={onCleanHandler}>
           Очистить корзину

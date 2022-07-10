@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const GET_PIZZAS = gql`
-  query getPizzas {
-    pizzas {
+  query getPizzas($pizzaFilter: PizzaFilter) {
+    pizzas(pizzaFilter: $pizzaFilter) {
       id
       name
       image
@@ -14,8 +14,8 @@ export const GET_PIZZAS = gql`
         pizzasIds
       }
       pizzaAvailability {
-        maxAmount
         orderedAmount
+        maxAmount
       }
     }
     cart @client
@@ -28,6 +28,15 @@ export const GET_PIZZA_AVAILABILITY = gql`
       pizzaId
       orderedAmount
       maxAmount
+    }
+  }
+`;
+
+export const GET_PIZZA_TYPES = gql`
+  query getPizzaTypes {
+    pizza_types {
+      id
+      name
     }
   }
 `;
