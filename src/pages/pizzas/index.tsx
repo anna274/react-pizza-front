@@ -11,16 +11,31 @@ import { IPizza, IPizzaAvailability, IPizzaType } from 'types';
 import { Header, Button, PageContainer, PageHeader } from 'components';
 import { cartVar } from 'index';
 import { Pizza } from './sections/pizza';
-import { PizzasContainer, PizzaFilters, PizzaFilter } from './styled';
+import { PizzasContainer, PizzaFilters, PizzaFilter, LoadMoreButtonContainer } from './styled';
 
 const baseFilter: IPizzaType = {
   id: 'base',
   name: 'Все',
 };
 
+const LIMIT = 4;
+
 export const Pizzas: React.FC = () => {
   const [filter, setFilter] = useState<IPizzaType>(baseFilter);
-  const { loading, error, data: { pizzas } = {}, refetch } = useQuery(GET_PIZZAS);
+  const [offset, setOffset] = useState<number>(0);
+  const {
+    loading,
+    error,
+    data: { pizzas: { edges: pizzas = [], pageInfo: { hasNextPage = false } = {} } = {} } = {},
+    refetch,
+    fetchMore,
+  } = useQuery(GET_PIZZAS, {
+    variables: {
+      offset,
+      limit: LIMIT,
+    },
+  });
+
   const { data: { pizza_types = [] } = {} } = useQuery(GET_PIZZA_TYPES);
   const { data: { pizza_availability } = {} } = useQuery(GET_PIZZA_AVAILABILITY);
   const { data: subscriptionData, error: subscribtionError } = useSubscription(
@@ -58,8 +73,11 @@ export const Pizzas: React.FC = () => {
               selected={filter?.id === id}
               onClick={() => {
                 setFilter({ id, name });
-                console.log('id === baseFilter.id', id === baseFilter.id);
-                refetch({ pizzaFilter: id === baseFilter.id ? {} : { id } });
+                refetch({
+                  offset: 0,
+                  limit: LIMIT,
+                  ...{ pizzaTypeId: id === baseFilter.id ? undefined : id },
+                });
               }}
             >
               {name}
@@ -78,6 +96,23 @@ export const Pizzas: React.FC = () => {
         ))}
         {pizzas.length === 0 && <div>Пицц такого вида нет у нас в меню :(</div>}
       </PizzasContainer>
+      {hasNextPage && (
+        <LoadMoreButtonContainer>
+          <Button
+            variant="contained"
+            size="big"
+            children="Загрузить больше пицц!!!"
+            onClick={() => {
+              setOffset(offset + LIMIT);
+              fetchMore({
+                variables: {
+                  offset: offset + LIMIT,
+                },
+              });
+            }}
+          />
+        </LoadMoreButtonContainer>
+      )}
     </PageContainer>
   );
 };

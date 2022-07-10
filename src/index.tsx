@@ -57,6 +57,19 @@ const client = new ApolloClient({
               return cartVar();
             },
           },
+          pizzas: {
+            keyArgs: false,
+            merge(existing, incoming) {
+              if (!existing) {
+                return incoming;
+              }
+              return {
+                ...existing,
+                edges: [...existing.edges, ...incoming.edges],
+                pageInfo: incoming.pageInfo,
+              };
+            },
+          },
         },
       },
       Pizza: {

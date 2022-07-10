@@ -1,21 +1,26 @@
 import { gql } from '@apollo/client';
 
 export const GET_PIZZAS = gql`
-  query getPizzas($pizzaFilter: PizzaFilter) {
-    pizzas(pizzaFilter: $pizzaFilter) {
-      id
-      name
-      image
-      modifications {
+  query getPizzas($offset: Int, $limit: Int, $pizzaTypeId: ID) {
+    pizzas(limit: $limit, offset: $offset, pizzaTypeId: $pizzaTypeId) {
+      edges {
         id
-        dough
-        size
-        price
-        pizzasIds
+        name
+        image
+        modifications {
+          id
+          dough
+          size
+          price
+          pizzasIds
+        }
+        pizzaAvailability {
+          orderedAmount
+          maxAmount
+        }
       }
-      pizzaAvailability {
-        orderedAmount
-        maxAmount
+      pageInfo {
+        hasNextPage
       }
     }
     cart @client

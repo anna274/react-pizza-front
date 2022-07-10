@@ -28,3 +28,11 @@ export const PizzaFilter = styled.div`
   font-size: 16px;
   cursor: pointer;
 `;
+
+export const LoadMoreButtonContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+`;
